@@ -1,6 +1,8 @@
 /*
  * Create a list that holds all of your cards
  */
+const cardTypes = ['dimond', 'paper-plane-o', 'anchor', 'bolt', 'cube', 'leaf', 'bicycle', 'bomb'];
+const cards = [...cardTypes, ...cardTypes];
 
 
 /*
@@ -10,9 +12,37 @@
  *   - add each card's HTML to the page
  */
 
+let deck = document.getElementsByClassName('deck')[0];
+
+function shuffleDeck() {
+
+    // Clear the deck
+    while (deck.firstChild) {
+        deck.firstChild.remove();
+    }
+
+    // Populate the deck
+    let shuffledCards = shuffle(cards);
+    shuffledCards.forEach(function (card) {
+        let list = document.createElement('li');
+        list.className += 'card';
+        list.innerHTML = `<i class="fa fa-${card}"></i>`;
+        deck.appendChild(list);
+    });
+}
+
+shuffleDeck();
+
+/*
+    Click Restart to shuffle the deck
+ */
+let restartButton = document.getElementsByClassName('restart')[0];
+console.log(restartButton);
+restartButton.addEventListener('click', shuffleDeck);
+
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
+    let currentIndex = array.length, temporaryValue, randomIndex;
 
     while (currentIndex !== 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);

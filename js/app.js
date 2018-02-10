@@ -6,10 +6,10 @@ const cards = [...cardTypes, ...cardTypes];
 let moveCount = 0;
 let moves = document.getElementsByClassName('moves')[0];
 let stars = document.getElementsByClassName('stars')[0];
-let oneCardFlipped = false;
-let lastOpenedCard;
 let openedCards = [];
-let matchedCards = [];
+let matchedCards = 0;
+const errorDisplayTime = 1000;
+const startDisplayTime = 5000;
 
 /*
  * Display the cards on the page
@@ -35,11 +35,22 @@ function shuffleDeck() {
     let shuffledCards = shuffle(cards);
     shuffledCards.forEach(function (card) {
         let list = document.createElement('li');
-        list.className += 'card';
+        list.className += 'card open show';
         list.innerHTML = `<i class="fa fa-${card}"></i>`;
         list.addEventListener('click', openCard);
         deck.appendChild(list);
     });
+
+
+    // Show For a short period of time
+    const deckCards = document.getElementsByClassName('card');
+
+    setTimeout(function () {
+        for (let i=0; i < deckCards.length; i++) {
+            closeCard(deckCards[i]);
+        }
+    }, startDisplayTime);
+
 }
 
 shuffleDeck();
@@ -79,15 +90,9 @@ function shuffle(array) {
 function openCard(event) {
 
     let card = event.target;
-    const cardName = card.firstChild.className.slice(6);
-
-    let lastCardName;
-    if (lastOpenedCard) {
-        lastCardName = lastOpenedCard.firstChild.className.slice(6);
-    }
 
     // Open the card
-    displayCard();
+    displayCard(card);
 
     // Add one move
     incrementMove();
@@ -96,34 +101,33 @@ function openCard(event) {
     addToOpenCardList(card);
 
     // Check if the card are same
-    if (openedCards.contains(card)) {
-        // Reset Both Cards
-        card.classList.remove('open');
-        card.classList.remove('show');
+    if (openedCards.length != 1) {
 
-        lastOpenedCard.classList.remove('open');
-        lastOpenedCard.classList.remove('show');
+        // Check opened cards
+        const isMatched = checkIfCardsMatch(openedCards);
 
-        // Two cards match
-        if (lastCardName === cardName) {
-            card.classList.add('match');
-            lastOpenedCard.classList.add('match');
+        if (isMatched) {
+            setCardsToMatched(openedCards);
 
-            matchedCards.push(cardName);
-
-            // Remove event listener
-            lastOpenedCard.removeEventListener('click', openCard);
-            card.removeEventListener('click', openCard);
+            // Add One Match Card Set
+            matchedCards++;
+            openedCards = [];
 
         } else {
-            // Nothing for now
-            console.log('wrong match');
+            setTimeout(function(){
+                closeCards(openedCards);
+                openedCards = [];
+            }, errorDisplayTime);
         }
     }
 
     // Game is finished
-    if (matchedCards.length === cardTypes.length) {
-        console.log("Win");
+    if (matchedCards === cardTypes.length) {
+        if (confirm(`Congratulation! Your final score is ${moveCount}, want another round?`)) {
+            shuffleDeck();
+        } else {
+            window.close();
+        }
     }
 }
 
@@ -156,13 +160,52 @@ function incrementMove(){
     setStars(moveCount);
 }
 
-function displayCard(card) {
-    if (!card.classList.contains('open')) {
-        card.classList.add('open');
-        card.classList.add('show');
-    }
+ function displayCard(card) {
+    card.className = '';
+    card.classList.add('card');
+    card.classList.add('open');
+    card.classList.add('show');
+
 }
 
 function addToOpenCardList(card) {
-    openedCards.push(card);
+    if (openedCards.indexOf(card) === -1) {
+        openedCards.push(card);
+    }
+}
+
+function checkIfCardsMatch(openedCards) {
+
+    let cardOneName = getCardName(openedCards[0]);
+    let cardTwoName = getCardName(openedCards[1]);
+
+    return cardOneName === cardTwoName;
+}
+
+function getCardName(card) {
+    return card.firstChild.className.slice(6);
+}
+
+function setCardsToMatched(openedCards) {
+    for (let i=0 ; i<openedCards.length ; i++) {
+        setCardToMatched(openedCards[i]);
+        openedCards[i].removeEventListener('click', openCard);
+    }
+}
+
+function setCardToMatched(card) {
+    card.className = '';
+    card.classList.add('card');
+    card.classList.add('match');
+}
+
+function closeCard(card) {
+    card.className = '';
+    card.classList.add('card');
+}
+
+function closeCards(openedCards) {
+    for (let i=0 ; i<openedCards.length ; i++) {
+        closeCard(openedCards[i]);
+    }
 }
